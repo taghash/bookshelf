@@ -1,10 +1,8 @@
-var _       = require('lodash');
-var Promise = global.testPromise;
-
+var _ = require('lodash');
+const checkJsonSupport = require('./helpers/json/supported');
 
 module.exports = function(bookshelf) {
-
-  var isJsonSupported;
+  let isJsonSupported;
 
   function checkResponse(actual, expected) {
     // Knex will store strings if client does not support JSON.
@@ -13,30 +11,29 @@ module.exports = function(bookshelf) {
         if (_.isObject(value)) {
           return JSON.stringify(value);
         }
-        return value
+        return value;
       });
     }
     expect(actual).to.eql(expected);
   }
 
   before(function() {
-    return require('./helpers/json/supported')(bookshelf).then(function(supported) {
-      isJsonSupported = supported;
-      return require('./helpers/json/migration')(bookshelf)
-    }).then(function() {
-       return require('./helpers/json/inserts')(bookshelf);
+    if (!checkJsonSupport(bookshelf)) return;
+
+    isJsonSupported = true;
+
+    return require('./helpers/json/migration')(bookshelf).then(function() {
+      return require('./helpers/json/inserts')(bookshelf);
     });
   });
 
   describe('JSON support', function() {
     var Models = require('./helpers/json/objects')(bookshelf).Models;
-
-    var Tank = Models.Tank;
     var Command = Models.Command;
 
-
     it('can `fetch` a model with a JSON column', function() {
-      return Command.forge({id: 0}).fetch()
+      return Command.forge({id: 0})
+        .fetch()
         .then(function(command) {
           checkResponse(command.attributes, {
             id: 0,
@@ -52,8 +49,29 @@ module.exports = function(bookshelf) {
         });
     });
 
+    it('returns the correct previous attributes when updating nested objects', function() {
+      return Command.forge({id: 0})
+        .fetch()
+        .then(function(command) {
+          const newTarget = {x: 7, y: 13};
+          const originalInfo = command.get('info');
+          const updatedInfo = _.cloneDeep(originalInfo);
+          updatedInfo.target = newTarget;
+
+          command.set('info', updatedInfo);
+
+          expect(command.get('info')).to.not.deep.eql(command.previous('info'));
+          expect(command.previous('info')).to.deep.equal(originalInfo);
+        });
+    });
+
     it('Trying to fetch a model automatically excludes JSON column', function() {
-      return Command.forge({unit_id: 1, type: 'attack', info: {test: 'blah'}}).fetch()
+      return Command.forge({
+        unit_id: 1,
+        type: 'attack',
+        info: {test: 'blah'}
+      })
+        .fetch()
         .then(function(command) {
           checkResponse(command.attributes, {
             id: 1,

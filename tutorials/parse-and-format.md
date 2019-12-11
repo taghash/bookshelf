@@ -5,30 +5,30 @@ parse.
 This can be done with the model's {@link Model#parse parse} and {@link Model#format format}
 methods:
 
-    Book = bookshelf.Model.extend({
-      tableName: 'books',
-      parse: function(response) {
-        response.tags = JSON.parse(response.tags || '[]');
-        return response;
-      },
-      format: function(attributes) {
-        attributes.tags = JSON.stringify(attributes.tags || []);
-        return attributes;
-      }
-    });
+```js
+const Book = bookshelf.model('Book', {
+  tableName: 'books',
+  parse(response) {
+    if (response.tags) response.tags = JSON.parse(response.tags)
+    return response
+  },
+  format(attributes) {
+    if (attributes.tags) attributes.tags = JSON.stringify(attributes.tags)
+    return attributes;
+  }
+})
+```
 
 A very common use case for this is converting camelCase attributes to snake_case column names and vice-versa:
 
-    Book = bookshelf.Model.extend({
-      tableName: 'books',
-      parse: function(response) {
-        return _.mapKeys(response, function(value, key) {
-          return _.camelCase(key);
-        });
-      },
-      format: function(attributes) {
-        return _.mapKeys(attributes, function(value, key) {
-          return _.snakeCase(key);
-        });
-      }
-    });
+```js
+const Book = bookshelf.model('Book', {
+  tableName: 'books',
+  parse(response) {
+    return _.mapKeys(response, (value, key) => _.camelCase(key))
+  },
+  format(attributes) {
+    return _.mapKeys(attributes, (value, key) => _.snakeCase(key))
+  }
+})
+```
