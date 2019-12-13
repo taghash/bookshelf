@@ -9,7 +9,7 @@ version="$(get_property 'package.json' 'version')"
 
 echo "(Re)Creating bookshelf-source remote"
 git remote remove bookshelf-source || true
-git remote add bookshelf-source git@github.com:bookshelf/bookshelf.git
+git remote add bookshelf-source git@github.com:taghash/bookshelf.git
 
 echo "Regenerating documentation"
 npm run jsdoc
