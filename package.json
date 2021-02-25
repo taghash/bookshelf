@@ -12,7 +12,7 @@
     "test": "npm run build && npm run lint &&  mocha --check-leaks -t 10000 -b test/index.js",
     "jsdoc": "./scripts/jsdoc.sh",
     "prepublish": "node ./scripts/build.js lib && npm run build",
-    "postpublish": "./scripts/postpublish.sh",
+    "postpublish": "./scripts/postpublish.sh"
   },
   "homepage": "http://bookshelfjs.org",
   "repository": {
